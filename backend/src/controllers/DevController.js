@@ -29,7 +29,7 @@ module.exports = {
                 coordinates: [longitude, latitude],
             };
 
-            const dev = await Dev.create({
+            dev = await Dev.create({
                 github_username,
                 name,
                 bio,
@@ -39,6 +39,39 @@ module.exports = {
             });
         }
 
-        return response.json(dev);
+        return response.json({ dev });
+    },
+    async update(request, response) {
+        const { github_username } = request.params;
+        const dados = request.body;
+        
+        let message = { msg: "Username do Dev não deve ser atualizado." };
+        if (!dados['github_username']) {
+            let techsAsArray = []
+            if (dados['techs']) {
+                techsAsArray = parseStringAsArray(dados['techs']);
+                dados['techs'] = techsAsArray;
+            }
+
+            const dev = await Dev.update({ github_username }, dados);
+
+            message = { msg: "Dev atualizado com sucesso!" }
+        }
+
+        return response.json(message);
+    },
+    async destroy(request, response) {
+        const { github_username } = request.params;
+
+        const dev = await Dev.findOne({ github_username });
+        console.log(dev);
+
+        if (dev) {
+            await Dev.deleteOne({ github_username });
+
+            return response.json({ message: "Dev deletado com sucesso!" });
+        }
+
+        return response.json({ message: "Dev não encontrado" });
     }
 };
